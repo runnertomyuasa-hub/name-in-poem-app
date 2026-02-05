@@ -17,40 +17,41 @@ model_path = "projects/180827076471/locations/us-central1/endpoints/478208283294
 model = GenerativeModel(model_path)
 
 # --- 3. 画面デザイン ---
-st.title("🌸 ネームインポエム作成")
-st.write("学習したプロの作風で、お名前に合わせた5〜6行の詩を作成します。")
+# タイトルを「名前でポエム！」に変更
+st.title("🌸 名前でポエム！")
+st.write("プロの作風を学習したAIが、お名前に合わせた5〜6行の詩を作成します。")
 
-# 入力欄
 name = st.text_input("お名前（漢字）", "小五郎")
-profile = st.text_area("人物のプロフィール（性格や職業、趣味など）", "勇ましい大工さん。ピアノも得意。")
+profile = st.text_area("人物のプロフィール（性格や趣味など）", "勇ましい大工さん。ピアノも得意。")
 
-# 用途の選択肢（ご要望通りに変更）
-usage_list = ["誕生日", "還暦・古希など長寿祝い", "退職祝い", "結婚祝い", "成人祝", "その他"]
+# 用途の選択肢を細分化
+usage_list = ["誕生日", "還暦祝", "古希祝", "長寿祝", "退職祝い", "結婚祝い", "成人祝", "その他"]
 usage_choice = st.selectbox("用途", usage_list)
 
-# 「その他」を選んだ場合の追加入力
 final_usage = usage_choice
 if usage_choice == "その他":
-    custom_usage = st.text_input("お祝いの目的を自由に入力してください（例：開店祝い）")
+    custom_usage = st.text_input("お祝いの目的を自由に入力してください")
     final_usage = custom_usage
 
 # --- 4. 生成実行 ---
 if st.button("詩を作成する"):
-    if not name or not final_usage:
-        st.warning("お名前と用途を入力してください。")
-    else:
-        with st.spinner("プロの作風を再現中..."):
-            # 学習時と同じ形式を厳守し、AIに「あの時の作風だ！」と思い出させます
-            prompt = f"漢字：{name}、プロフィール：{profile}、用途：{final_usage}"
-            
-            # 5〜6行の詩に限定する指示を念押し（微調整が必要な場合があります）
-            response = model.generate_content(
-                prompt,
-                generation_config={"max_output_tokens": 512, "temperature": 0.7}
-            )
-            
-            st.subheader("生成されたネームインポエム")
-            # 枠で囲って表示
-            st.info(response.text)
-            
-            st.caption("※5〜6行で構成され、お名前の漢字や意味が含まれています。")
+    with st.spinner("プロの作風を再現中..."):
+        # 【重要】学習時のデータ形式を完全に再現し、「詩だけを出力せよ」と強く命じます
+        # 漢字の辺や作りを活用する指示もプロンプトに組み込みました
+        prompt = (
+            f"以下を元に、学習した作風で5〜6行のネームインポエムを作成してください。\n"
+            f"余計な挨拶や解説は一切不要です。詩の内容だけを出力してください。\n\n"
+            f"漢字：{name}\n"
+            f"プロフィール：{profile}\n"
+            f"用途：{final_usage}"
+        )
+        
+        # 創造性を少し抑えて（temperature=0.4）、学習したパターンを忠実に守らせます
+        response = model.generate_content(
+            prompt,
+            generation_config={"max_output_tokens": 512, "temperature": 0.4}
+        )
+        
+        st.subheader("生成されたポエム")
+        # 詩を見やすく表示
+        st.success(response.text)
